@@ -1,0 +1,132 @@
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Toaster Notification Using JS</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            }
+
+            body {
+                min-height: 100vh;
+                transition: background-color 0.3s ease, color 0.3s ease;
+            }
+
+            .dark {
+                background-color: #121214;
+                color: #f4f4f5;
+            }
+
+            .light {
+                background-color: #f4f4f5;
+                color: #18181b;
+            }
+
+            /* Toast Container */
+            .main {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                display: flex;
+                flex-direction: column;
+                align-items: flex-end; /* Right edge par align rahenge */
+                gap: 10px;
+                z-index: 9999;
+                pointer-events: none; /* Screen clicks block na hon */
+            }
+
+            /* Toast Card */
+            .toaster {
+                pointer-events: auto;
+                min-width: 240px;
+                max-width: 320px;
+                background: #ffffff;
+                color: #18181b;
+                padding: 12px 18px;
+                border-radius: 10px;
+                font-size: 14px;
+                font-weight: 600;
+                border-left: 5px solid #3b82f6; /* Accent indicator */
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+                
+                /* Slide-in transition */
+                transform: translateX(120%);
+                opacity: 0;
+                transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+            }
+
+            /* Dark mode me toast styling */
+            body.dark .toaster {
+                background: #27272a;
+                color: #fafafa;
+                border-left-color: #60a5fa;
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            }
+
+            /* Active & Exit classes for smooth animation */
+            .toaster.show {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            .toaster.hide {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="main"></div>
+
+        <script>
+            // System Theme Handler
+            const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+            function setTheme(isDark) {
+                document.body.className = isDark ? 'dark' : 'light';
+            }
+            setTheme(mediaQuery.matches);
+            mediaQuery.addEventListener('change', (e) => setTheme(e.matches));
+
+            // Optimized Toaster Closure
+            function createToaster(config) {
+                const container = document.querySelector('.main'); // Ek baar query kiya (Closure memory)
+
+                return function(notification) {
+                    const toast = document.createElement('div');
+                    toast.classList.add('toaster');
+                    toast.textContent = notification;
+
+                    container.appendChild(toast);
+
+                    // Smooth slide-in trigger
+                    requestAnimationFrame(() => {
+                        toast.classList.add('show');
+                    });
+
+                    // Auto hide and cleanup
+                    setTimeout(() => {
+                        toast.classList.remove('show');
+                        toast.classList.add('hide');
+
+                        // Animation poora hone ke baad DOM se delete
+                        toast.addEventListener('transitionend', () => {
+                            toast.remove();
+                        });
+                    }, config.duration * 1000);
+                };
+            }
+
+            const toaster = createToaster({ duration: 3 });
+
+            toaster('Download Done..');
+            setTimeout(() => {
+                toaster('You get New notification');
+            }, 2000);
+        </script>
+    </body>
+    </html>
